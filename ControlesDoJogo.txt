@@ -1,0 +1,23 @@
+O Menu aparece ao clicar com o Botão Direito do mouse.Após isso temos como controles:
+
+-> Teclas de Movimento do Jogador:
+
+W: Move o mallet do jogador para cima.
+S: Move o mallet do jogador para baixo.
+A: Move o mallet do jogador para a esquerda.
+D: Move o mallet do jogador para a direita.
+
+-> Teclas de Câmera:
+
+'c': Alterna entre os modos de câmera (Padrão, Região do jogador, Região do computador, Câmera que segue o jogador).
+'C': Alterna para a câmera anterior.
+
+-> Tecla de Pausa:
+
+p: Pausa e despausa o jogo.
+
+-> Tecla de Sair:
+
+Esc: Fecha o jogo.
+
+Divirta-se!!!
