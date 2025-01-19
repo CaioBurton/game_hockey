@@ -27,8 +27,8 @@ GLfloat puckVelX = 0.5;
 GLfloat puckVelY = 0.5;
 
 // Tamanho dos objetos
-GLfloat tamanhoMallet = 10.0;
-GLfloat tamanhoPuck = 5.0;
+GLfloat tamanhoMallet = 15.0;
+GLfloat tamanhoPuck = 10.0;
 
 // Pontuação
 int pontosPlayer = 0;
@@ -155,6 +155,7 @@ void desenhaPuck(GLfloat x, GLfloat y) {
 // Desenha a arena de hóquei
 void desenhaArena(void) {
 	glDisable(GL_LIGHTING);
+	glLineWidth(4.0); // Define a espessura da linha
 	
     glColor3f(0, 0, 0);
     glPushMatrix();
@@ -163,42 +164,89 @@ void desenhaArena(void) {
     glutSolidCube(1);
     glPopMatrix();
 
-    // Desenha paredes da arena
-	glColor3f(0.0, 1.0, 0.0); // Verde
+    // Define as dimensões das paredes
+    float paredeProfundidade = 5.0f; // Define a profundidade das paredes (z)
+    float paredeEspessura = 3.0f;    // Define a espessura extra das paredes (x ou y)
 
+    // Desenha paredes da arena
+    glColor3f(0.0, 1.0, 0.0); // Verde (Esquerda)
     glPushMatrix();
     glTranslatef(-mesaWidth / 2 - 1, 0, 0); // Esquerda
-    glScalef(2, mesaHeight + 2, 2);
+    glScalef(paredeEspessura, mesaHeight + 2, paredeProfundidade); // Espessura aumentada
     glutSolidCube(1);
     glPopMatrix();
 
-	glColor3f(1.0, 1.0, 0.0); // Amarelo
-
+    glColor3f(1.0, 1.0, 0.0); // Amarelo (Direita)
     glPushMatrix();
     glTranslatef(mesaWidth / 2 + 1, 0, 0); // Direita
-    glScalef(2, mesaHeight + 2, 2);
+    glScalef(paredeEspessura, mesaHeight + 2, paredeProfundidade); // Espessura aumentada
     glutSolidCube(1);
     glPopMatrix();
     
-    glColor3f(1.0, 0.0, 0.0); // Vermelho
-
+    glColor3f(1.0, 0.0, 0.0); // Vermelho (Inferior)
     glPushMatrix();
     glTranslatef(0, -mesaHeight / 2 - 1, 0); // Inferior
-    glScalef(mesaWidth + 2, 2, 2);
+    glScalef(mesaWidth + 2, paredeEspessura, paredeProfundidade); // Espessura aumentada
     glutSolidCube(1);
     glPopMatrix();
     
-    glColor3f(0.0, 0.0, 1.0); // Azul
-
+    glColor3f(0.0, 0.0, 1.0); // Azul (Superior)
     glPushMatrix();
     glTranslatef(0, mesaHeight / 2 + 1, 0); // Superior
-    glScalef(mesaWidth + 2, 2, 2);
+    glScalef(mesaWidth + 2, paredeEspessura, paredeProfundidade); // Espessura aumentada
     glutSolidCube(1);
     glPopMatrix();
+    
+    // Desenha a linha central
+    glColor3f(1.0, 1.0, 1.0); // Cor da linha central
+    glBegin(GL_LINES);
+    glVertex3f(-mesaWidth / 2, 0, 0);
+    glVertex3f(mesaWidth / 2, 0, 0);
+    glEnd();
+	
+	// Desenha o círculo central
+    glColor3f(1.0, 1.0, 1.0); // Branco
+    float raio = 40.0f; // Define o raio do círculo
+    int num_segments = 100; // Define o número de segmentos para aproximar o círculo
+    glBegin(GL_LINE_LOOP);
+    for (int i = 0; i < num_segments; i++) {
+        float theta = 2.0f * 3.1415926f * i / num_segments; // Ângulo atual
+        float x = raio * cosf(theta); // Coordenada X
+        float y = raio * sinf(theta); // Coordenada Y
+        glVertex3f(x, y, 0.0f); // Define o vértice
+    }
+    glEnd();
+    
+    // Desenha as grandes áreas em forma de meia circunferência
+    glColor3f(1.0, 1.0, 1.0); // Branco
+    float areaRaio = 50.0f; // Raio da meia circunferência
+    int area_segments = 50; // Número de segmentos para a meia circunferência
+
+    // Meia circunferência na extremidade inferior
+    glBegin(GL_LINE_STRIP);
+    for (int i = 0; i <= area_segments; i++) {
+        float theta = 3.1415926f * i / area_segments; // Ângulo varia de 0 a pi
+        float x = areaRaio * cosf(theta);
+        float y = -mesaHeight / 2 + areaRaio * sinf(theta); // Posição ajustada
+        glVertex3f(x, y, 0.0f);
+    }
+    glEnd();
+
+    // Meia circunferência na extremidade superior
+    glBegin(GL_LINE_STRIP);
+    for (int i = 0; i <= area_segments; i++) {
+        float theta = 3.1415926f * i / area_segments; // Ângulo varia de 0 a pi
+        float x = areaRaio * cosf(theta);
+        float y = mesaHeight / 2 - areaRaio * sinf(theta); // Posição ajustada
+        glVertex3f(x, y, 0.0f);
+    }
+    glEnd();
+	
+	// Restaura a largura da linha (opcional)
+	glLineWidth(1.0); // Retorna à largura padrão
 
 	glEnable(GL_LIGHTING);
 }
-
 
 // Desenha os gols
 void desenhaGols(void) {
@@ -206,15 +254,15 @@ void desenhaGols(void) {
 
     // Gol inferior
     glPushMatrix();
-    glTranslatef(0, -mesaHeight / 2 , 0);
-    glScalef(mesaWidth / 3, 2, 2);
+    glTranslatef(0, -mesaHeight / 2, 0);
+    glScalef(mesaWidth / 2, 2, 15); // Aumenta a profundidade no eixo Z
     glutSolidCube(1);
     glPopMatrix();
 
     // Gol superior
     glPushMatrix();
-    glTranslatef(0, mesaHeight / 2 , 0);
-    glScalef(mesaWidth / 3, 2, 2);
+    glTranslatef(0, mesaHeight / 2, 0);
+    glScalef(mesaWidth / 2, 2, 15); // Aumenta a profundidade no eixo Z
     glutSolidCube(1);
     glPopMatrix();
 }
@@ -271,6 +319,55 @@ void desenharTexto(float x, float y, float z, const char *texto) {
     }
 }
 
+void desenharTextoCentralizadoNaTela(const char *texto, float r, float g, float b) {
+	glDisable(GL_LIGHTING);
+    int larguraJanela = glutGet(GLUT_WINDOW_WIDTH);
+    int alturaJanela = glutGet(GLUT_WINDOW_HEIGHT);
+
+    // Calcula a largura do texto em pixels
+    int larguraTexto = 0;
+    const char *c = texto;
+    while (*c) {
+        larguraTexto += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c);
+        c++;
+    }
+
+    // Calcula a posição central
+    int x = (larguraJanela - larguraTexto) / 2;
+    int y = alturaJanela / 2;
+
+    // Configura projeção ortográfica para desenhar na tela
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(0, larguraJanela, 0, alturaJanela);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    // Define a cor do texto
+    glColor3f(r, g, b);
+
+    // Define a posição do texto
+    glRasterPos2i(x, y);
+
+    // Desenha o texto
+    while (*texto) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *texto);
+        texto++;
+    }
+
+    // Restaura as configurações anteriores
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glEnable(GL_LIGHTING);
+}
+
+
+
 // Desenha os flocos de neve
 // void desenharFlocosDeNeve() {
 //     glColor3f(1.0, 1.0, 1.0);
@@ -291,13 +388,6 @@ void display(void) {
     desenhaArena();
     desenhaGols();
 
-    // Desenha a linha central
-    glColor3f(1.0, 1.0, 1.0); // Cor da linha central
-    glBegin(GL_LINES);
-    glVertex3f(-mesaWidth / 2, 0, 0);
-    glVertex3f(mesaWidth / 2, 0, 0);
-    glEnd();
-
     desenhaMallet(malletPlayerX, malletPlayerY, true);  // Mallet do jogador
     desenhaMallet(malletCompX, malletCompY, false);    // Mallet do adversário
     desenhaPuck(puckX, puckY);                         // Puck (bola central)
@@ -306,7 +396,8 @@ void display(void) {
 
     // Desenhar texto informativo de pausa
     if (isPaused) {
-        desenharTexto(-10, 0, 0, "Jogo Pausado");
+        //desenharTexto(-20, 0, 0, "Jogo Pausado");
+        desenharTextoCentralizadoNaTela("Jogo Pausado", 0.0, 1.0, 0.0);
     }
 
     glutSwapBuffers();
@@ -513,8 +604,9 @@ void keyboard(unsigned char key, int x, int y) {
 
 // Desenha o placar na tela
 void desenhaPlacar(void) {
+	glDisable(GL_LIGHTING);
     char placar[50];
-    sprintf(placar, "Player: %d  Computer: %d", pontosPlayer, pontosComp);
+    sprintf(placar, "Jogador: %d  Computador: %d", pontosPlayer, pontosComp);
 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
@@ -534,6 +626,7 @@ void desenhaPlacar(void) {
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
+    glEnable(GL_LIGHTING);
 }
 
 // Cria o menu principal e o de dificuldade
