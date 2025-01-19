@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
 
 // Inicializa configurações
 void init(void) {
-    glClearColor(0.0f, 0.0f, 0.5f, 1.0f); // Fundo azul escuro
+    glClearColor(0.0f, 0.0f, 0.2f, 1.0f); // Fundo azul escuro
     glEnable(GL_DEPTH_TEST);
     glShadeModel(GL_SMOOTH);
 
@@ -145,7 +145,7 @@ void movimentaMouse(int x, int y) {
 
 // Função para desenhar o puck (bola central) com cor laranja
 void desenhaPuck(GLfloat x, GLfloat y) {
-    glColor3f(1.0, 0.5, 0.0); // Laranja
+    glColor3f(1.0, 1.0, 0.0); // Amarelo
     glPushMatrix();
     glTranslatef(x, y, 0);
     glutSolidSphere(tamanhoPuck, 20, 20);
