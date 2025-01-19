@@ -42,6 +42,9 @@ int dificuldade = 1; // 1: Fácil, 2: Médio, 3: Difícil
 
 bool isPaused = false; // Variável global para controlar o estado de pausa
 
+// Variável para controlar a exibição da mensagem de gol
+bool mostrarMensagemGol = false;
+
 // Funções de inicialização
 void init(void);
 void desenhaArena(void);
@@ -124,6 +127,7 @@ void desenhaMallet(GLfloat x, GLfloat y, bool isPlayer) {
 }
 
 void movimentaMouse(int x, int y) {
+	if (isPaused) return; // Bloqueia o movimento se o jogo estiver pausado
     // Obter a largura e altura da janela atual
     int larguraJanela = glutGet(GLUT_WINDOW_WIDTH);
     int alturaJanela = glutGet(GLUT_WINDOW_HEIGHT);
@@ -310,6 +314,12 @@ void configurarCamera(void) {
 }
 
 
+// Função para desativar a mensagem de gol após alguns segundos
+void esconderMensagemGol(int value) {
+    mostrarMensagemGol = false;
+    glutPostRedisplay();
+}
+
 // Função para desenhar texto na tela
 void desenharTexto(float x, float y, float z, const char *texto) {
     glRasterPos3f(x, y, z);
@@ -387,17 +397,18 @@ void display(void) {
 
     desenhaArena();
     desenhaGols();
-
-    desenhaMallet(malletPlayerX, malletPlayerY, true);  // Mallet do jogador
-    desenhaMallet(malletCompX, malletCompY, false);    // Mallet do adversário
-    desenhaPuck(puckX, puckY);                         // Puck (bola central)
+    desenhaMallet(malletPlayerX, malletPlayerY, true);
+    desenhaMallet(malletCompX, malletCompY, false);
+    desenhaPuck(puckX, puckY);
 
     desenhaPlacar();
 
-    // Desenhar texto informativo de pausa
     if (isPaused) {
-        //desenharTexto(-20, 0, 0, "Jogo Pausado");
         desenharTextoCentralizadoNaTela("Jogo Pausado", 0.0, 1.0, 0.0);
+    }
+
+    if (mostrarMensagemGol) {
+        desenharTextoCentralizadoNaTela("GOALL!!!", 1.0, 1.0, 0.0);
     }
 
     glutSwapBuffers();
@@ -509,8 +520,6 @@ void verificaColisoes(void) {
     }
 }
 
-
-
 void movimentoMalletComp(void) {
     GLfloat vel = 0.2; // Velocidade base
     if (dificuldade == 2) vel = 0.4; // Médio
@@ -544,6 +553,10 @@ void resetarJogo(void) {
     malletPlayerY = -80.0;
     malletCompX = 0.0;
     malletCompY = 80.0;
+
+    // Exibir mensagem de gol
+    mostrarMensagemGol = true;
+    glutTimerFunc(2000, esconderMensagemGol, 0); // Remove a mensagem após 2 segundos
 }
 
 // Verifica se houve uma vitória ou derrota
@@ -604,19 +617,31 @@ void keyboard(unsigned char key, int x, int y) {
 
 // Desenha o placar na tela
 void desenhaPlacar(void) {
-	glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHTING);
+    
     char placar[50];
     sprintf(placar, "Jogador: %d  Computador: %d", pontosPlayer, pontosComp);
 
+    // Obtendo a largura e altura da janela atual
+    int larguraJanela = glutGet(GLUT_WINDOW_WIDTH);
+    int alturaJanela = glutGet(GLUT_WINDOW_HEIGHT);
+
+    // Configuração de projeção ortográfica para desenhar o texto
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
-    gluOrtho2D(0, 800, 0, 600);
+    gluOrtho2D(0, larguraJanela, 0, alturaJanela);
 
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-    glRasterPos2i(10, 570);
+
+    // Define a posição do texto no canto superior direito
+    int x = larguraJanela - 235; // Ajuste para alinhamento à direita
+    int y = alturaJanela - 30;   // Ajuste para a margem superior
+
+    glColor3f(1.0, 1.0, 1.0); // Cor branca para o texto
+    glRasterPos2i(x, y);
 
     for (char *c = placar; *c != '\0'; c++) {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
