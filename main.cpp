@@ -45,6 +45,10 @@ bool isPaused = false; // Variável global para controlar o estado de pausa
 // Variável para controlar a exibição da mensagem de gol
 bool mostrarMensagemGol = false;
 
+// Variável para controlar a exibição da mensagem de vitória/derrota
+bool mostrarMensagemFim = false;
+char mensagemFim[50];
+
 // Funções de inicialização
 void init(void);
 void desenhaArena(void);
@@ -403,11 +407,16 @@ void display(void) {
 
     desenhaPlacar();
 
-    if (isPaused) {
-        desenharTextoCentralizadoNaTela("Jogo Pausado", 0.0, 1.0, 0.0);
+    if (isPaused && mostrarMensagemFim) {
+    	if(pontosPlayer == 5)
+        	desenharTextoCentralizadoNaTela(mensagemFim, 0.0, 1.0, 0.0);
+        else
+        	desenharTextoCentralizadoNaTela(mensagemFim, 1.0, 0.0, 0.0);
+    } else if (isPaused) {
+        desenharTextoCentralizadoNaTela("Jogo Pausado", 0.0, 1.0, 0.0); // Verde para pausa
     }
 
-    if (mostrarMensagemGol) {
+    if (mostrarMensagemGol && (pontosPlayer != 5 || pontosComp != 5)) {
         desenharTextoCentralizadoNaTela("GOALL!!!", 1.0, 1.0, 0.0);
     }
 
@@ -451,7 +460,10 @@ void atualiza(int value) {
 }
 
 void verificaColisoes(void) {
-    // Colisão com as bordas da mesa
+    // Define o raio da área do gol
+    GLfloat raioGol = 50.0; // Metade do diâmetro da área de gol
+
+    // Colisão com as bordas laterais da mesa
     if (puckX - tamanhoPuck <= -mesaWidth / 2) {
         puckX = -mesaWidth / 2 + tamanhoPuck; // Ajuste para não atravessar
         puckVelX = -puckVelX;
@@ -461,23 +473,28 @@ void verificaColisoes(void) {
         puckVelX = -puckVelX;
     }
 
-    // Verificação de gol
+    // Verificação de gol no gol inferior (do jogador)
     if (puckY - tamanhoPuck <= -mesaHeight / 2) {
-        if (abs(puckX) <= mesaWidth / 6) {
+        if (sqrt(puckX * puckX) <= raioGol) {  // Verifica se o puck está dentro da área circular do gol
             pontosComp++;
-            resetarJogo();
+            if (pontosComp != maxPontos) {
+                resetarJogo();
+            }
         } else {
-            puckY = -mesaHeight / 2 + tamanhoPuck; // Ajuste para não atravessar
+            puckY = -mesaHeight / 2 + tamanhoPuck; // Rebater o puck na parede inferior
             puckVelY = -puckVelY;
         }
     }
 
+    // Verificação de gol no gol superior (do computador)
     if (puckY + tamanhoPuck >= mesaHeight / 2) {
-        if (abs(puckX) <= mesaWidth / 6) {
+        if (sqrt(puckX * puckX) <= raioGol) {  // Verifica se o puck está dentro da área circular do gol
             pontosPlayer++;
-            resetarJogo();
+            if (pontosPlayer != maxPontos) {
+                resetarJogo();
+            }
         } else {
-            puckY = mesaHeight / 2 - tamanhoPuck; // Ajuste para não atravessar
+            puckY = mesaHeight / 2 - tamanhoPuck; // Rebater o puck na parede superior
             puckVelY = -puckVelY;
         }
     }
@@ -485,7 +502,7 @@ void verificaColisoes(void) {
     // Colisão com o mallet do jogador
     GLfloat dxPlayer = puckX - malletPlayerX;
     GLfloat dyPlayer = puckY - malletPlayerY;
-    GLfloat distPlayer2 = dxPlayer * dxPlayer + dyPlayer * dyPlayer; // a norma entre os centros deve ser maior que a soma dos raios
+    GLfloat distPlayer2 = dxPlayer * dxPlayer + dyPlayer * dyPlayer;
     GLfloat somaRaio2 = (tamanhoMallet + tamanhoPuck) * (tamanhoMallet + tamanhoPuck);
 
     if (distPlayer2 <= somaRaio2) {
@@ -494,8 +511,8 @@ void verificaColisoes(void) {
         GLfloat dirX = dxPlayer / distPlayer;
         GLfloat dirY = dyPlayer / distPlayer;
 
-        malletPlayerX -= overlap * dirX * 0.5; // Move o mallet do jogador para fora da colisão
-        malletPlayerY -= overlap * dirY * 0.5; // 
+        malletPlayerX -= overlap * dirX * 0.5;
+        malletPlayerY -= overlap * dirY * 0.5;
 
         puckVelX = dxPlayer * 0.2;
         puckVelY = dyPlayer * 0.2;
@@ -504,7 +521,7 @@ void verificaColisoes(void) {
     // Colisão com o mallet do computador
     GLfloat dxComp = puckX - malletCompX;
     GLfloat dyComp = puckY - malletCompY;
-    GLfloat distComp2 = dxComp * dxComp + dyComp * dyComp; // a norma entre os centros deve ser maior que a soma dos raios
+    GLfloat distComp2 = dxComp * dxComp + dyComp * dyComp;
 
     if (distComp2 <= somaRaio2) {
         GLfloat distComp = sqrt(distComp2);
@@ -512,25 +529,26 @@ void verificaColisoes(void) {
         GLfloat dirX = dxComp / distComp;
         GLfloat dirY = dyComp / distComp;
 
-        malletCompX -= overlap * dirX * 0.5; // Move o mallet da CPU para fora da colisão
-        malletCompY -= overlap * dirY * 0.5; // esse overlap garante que o CPU não fique sobrepondo o disco na movimentação
+        malletCompX -= overlap * dirX * 0.5;
+        malletCompY -= overlap * dirY * 0.5;
 
         puckVelX = dxComp * 0.2;
         puckVelY = dyComp * 0.2;
     }
 }
 
+
 void movimentoMalletComp(void) {
-    GLfloat vel = 0.2; // Velocidade base
-    if (dificuldade == 2) vel = 0.4; // Médio
-    if (dificuldade == 3) vel = 0.6; // Difícil
+    GLfloat vel = 0.4; // Velocidade base
+    if (dificuldade == 2) vel = 0.6; // Médio
+    if (dificuldade == 3) vel = 0.8; // Difícil
 
     GLfloat dirX = puckX - malletCompX;
     GLfloat dirY = puckY - malletCompY;
     GLfloat dist = sqrt(dirX * dirX + dirY * dirY);
 
     // Movimenta o mallet da CPU somente se estiver longe o suficiente do puck
-    if (dist > tamanhoMallet + tamanhoPuck + 5.0) {
+    if (dist > tamanhoMallet + tamanhoPuck) {
         if (puckX > malletCompX) malletCompX += vel;
         if (puckX < malletCompX) malletCompX -= vel;
         if (puckY > malletCompY && malletCompY + vel <= mesaHeight / 2 - tamanhoMallet) {
@@ -562,11 +580,13 @@ void resetarJogo(void) {
 // Verifica se houve uma vitória ou derrota
 void verificarVitoria(void) {
     if (pontosPlayer >= maxPontos) {
-        printf("Você venceu!\n");
-        exit(0);
+        sprintf(mensagemFim, "Voce venceu!");
+        mostrarMensagemFim = true;
+        isPaused = true;
     } else if (pontosComp >= maxPontos) {
-        printf("Você perdeu!\n");
-        exit(0);
+        sprintf(mensagemFim, "Voce perdeu!");
+        mostrarMensagemFim = true;
+        isPaused = true;
     }
 }
 
