@@ -43,9 +43,6 @@ GLfloat tamanhoPuck = 10.0;
 int pontosPlayer = 0;
 int pontosComp = 0;
 
-// Variáveis de controle de câmera
-int cameraMode = 1; // 0: Padrão, 1: Campo do jogador, 2: Campo do computador
-
 // Variável de dificuldade
 int dificuldade = 1; // 1: Fácil, 2: Médio, 3: Difícil
 
@@ -72,7 +69,6 @@ void verificaColisoes(void);
 void movimentoMalletComp(void);
 void resetarJogo(void);
 void verificarVitoria(void);
-void configurarCamera(void);
 void desenhaPlacar(void);
 void menuPrincipal(int op);
 void dificuldadeMenu(int op);
@@ -277,60 +273,17 @@ void desenhaGols(void) {
     // Gol inferior
     glPushMatrix();
     glTranslatef(0, -mesaHeight / 2, 0);
-    glScalef(mesaWidth / 2, 2, 15); // Aumenta a profundidade no eixo Z
+    glScalef(mesaWidth / 2, 2, 5); // Aumenta a profundidade no eixo Z
     glutSolidCube(1);
     glPopMatrix();
 
     // Gol superior
     glPushMatrix();
     glTranslatef(0, mesaHeight / 2, 0);
-    glScalef(mesaWidth / 2, 2, 15); // Aumenta a profundidade no eixo Z
+    glScalef(mesaWidth / 2, 2, 7); // Aumenta a profundidade no eixo Z
     glutSolidCube(1);
     glPopMatrix();
 }
-
-// Desenha um mallet
-// void desenhaMallet(GLfloat x, GLfloat y) {
-//     glEnable(GL_LIGHTING); // Ativar iluminação
-//     glColor3f(1.0, 0.0, 0.0); // Vermelho para o mallet do jogador
-//     glPushMatrix();
-//     glTranslatef(x, y, 0);
-//     glutSolidSphere(tamanhoMallet, 20, 20);
-//     glPopMatrix();
-//     glDisable(GL_LIGHTING); // Desativar iluminação
-// }
-// 
-// Desenha o puck
-// void desenhaPuck(GLfloat x, GLfloat y) {
-//     glEnable(GL_LIGHTING); // Ativar iluminação
-//     glColor3f(1.0, 1.0, 0.0); // Amarelo para o puck
-//     glPushMatrix();
-//     glTranslatef(x, y, 0);
-//     glutSolidSphere(tamanhoPuck, 20, 20);
-//     glPopMatrix();
-//     glDisable(GL_LIGHTING); // Desativar iluminação
-// }
-
-
-
-// Configura a câmera de acordo com o modo selecionado
-void configurarCamera(void) {
-    switch (cameraMode) {
-        case 0: // Padrão
-            gluLookAt(0.0, 0.0, 500.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-            break;
-        case 1: // Isométrica do jogador
-            gluLookAt(0.0, -380.0, 200.0, 0.0, 10.0, 0.0, 0.0, 1.0, 0.0);
-            break;
-        case 2: // Isométrica do computador
-            gluLookAt(0.0, 380.0, 200.0, 0.0, 50.0, 0.0, 0.0, -1.0, 0.0);
-            break;
-        case 3: // Câmera que segue o jogador
-            gluLookAt(malletPlayerX, malletPlayerY - 50, 200.0, malletPlayerX, malletPlayerY, 0.0, 0.0, 1.0, 0.0);
-            break;
-    }
-}
-
 
 // Função para desativar a mensagem de gol após alguns segundos
 void esconderMensagemGol(int value) {
@@ -398,7 +351,7 @@ void desenharTextoCentralizadoNaTela(const char *texto, float r, float g, float 
 void display(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
-    configurarCamera();
+    gluLookAt(0.0, -380.0, 200.0, 0.0, 10.0, 0.0, 0.0, 1.0, 0.0);
 
     desenhaArena();
     desenhaGols();
@@ -629,12 +582,6 @@ void keyboard(unsigned char key, int x, int y) {
         case 'd':
             if (malletPlayerX + 3.0 <= mesaWidth / 2 - tamanhoMallet) malletPlayerX += 2.5;
             break;
-        case 'c':
-            cameraMode = (cameraMode + 1) % 4;
-            break;
-        case 'C':
-            cameraMode = (cameraMode + 2) % 4; // Alterna para a câmera anterior
-            break;
         case 'p': // Pausa e despausa
             isPaused = !isPaused;
             if (!isPaused) {
@@ -650,25 +597,32 @@ void keyboard(unsigned char key, int x, int y) {
 // Desenha o placar na tela
 void desenhaPlacar(void) {
     glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
 
-    // Obtém as dimensões da janela
     int larguraJanela = glutGet(GLUT_WINDOW_WIDTH);
     int alturaJanela = glutGet(GLUT_WINDOW_HEIGHT);
 
-    // Texto do placar
     char placar[50];
     sprintf(placar, "Jogador: %d  |  Computador: %d", pontosPlayer, pontosComp);
 
-    // Configuração da área do placar
-    int larguraPlacar = 300; // Largura do retângulo do placar
-    int alturaPlacar = 50;   // Altura do retângulo do placar
-    int x = (larguraJanela - larguraPlacar) / 2; // Centro no eixo X
-    int y = alturaJanela - alturaPlacar - 20;    // Margem superior
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(0, larguraJanela, 0, alturaJanela);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
 
-    // Desenha o fundo do placar (um retângulo semi-transparente)
-    glColor4f(0.0, 0.0, 0.0, 0.5); // Fundo preto com transparência
+    // Desenha o fundo do placar
+    glColor4f(0.0, 0.0, 0.0, 0.5);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    int larguraPlacar = 300;
+    int alturaPlacar = 50;
+    int x = (larguraJanela - larguraPlacar) / 2; // Centro da janela
+    int y = alturaJanela - alturaPlacar - 70;    // Posição do placar no topo da tela
 
     glBegin(GL_QUADS);
     glVertex2f(x, y);
@@ -676,32 +630,23 @@ void desenhaPlacar(void) {
     glVertex2f(x + larguraPlacar, y + alturaPlacar);
     glVertex2f(x, y + alturaPlacar);
     glEnd();
-
+    
     glDisable(GL_BLEND);
 
-    // Configura o texto para exibição no centro do placar
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    gluOrtho2D(0, larguraJanela, 0, alturaJanela);
-
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-
-    // Define a cor do texto
-    glColor3f(1.0, 1.0, 1.0); // Branco
-
-    // Calcula a posição do texto
+    // Calcular a largura total do texto para centralizá-lo
     int larguraTexto = 0;
     for (char *c = placar; *c != '\0'; c++) {
         larguraTexto += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c);
     }
-    int textoX = x + (larguraPlacar - larguraTexto) / 2;
-    int textoY = y + (alturaPlacar - 18) / 2;
 
-    // Exibe o texto do placar
+    // Centralizar o texto dentro da área preta do placar
+    int textoX = x + (larguraPlacar - larguraTexto) / 2;
+    int textoY = y + (alturaPlacar / 2) - 5;  // Posiciona o texto no meio verticalmente
+
+    glColor3f(1.0, 1.0, 1.0);  // Cor do texto branca
     glRasterPos2i(textoX, textoY);
+
+    // Renderiza o texto caractere por caractere
     for (char *c = placar; *c != '\0'; c++) {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
     }
@@ -711,8 +656,10 @@ void desenhaPlacar(void) {
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
 
+    glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
 }
+
 
 // Cria o menu principal e o de dificuldade
 void criarMenu(void) {
@@ -760,6 +707,9 @@ void configurarMaterialBrilho(GLfloat r, GLfloat g, GLfloat b) {
     glMaterialfv(GL_FRONT, GL_DIFFUSE, difusa);
     glMaterialfv(GL_FRONT, GL_SPECULAR, especular);
     glMaterialf(GL_FRONT, GL_SHININESS, brilho);
+    
+    glEnable(GL_COLOR_MATERIAL);
+    glColor3f(r, g, b);
 }
 
 void inicializarParticulas(GLfloat origemX, GLfloat origemY) {
@@ -803,7 +753,3 @@ void desenharParticulas() {
         }
     }
 }
-
-
-
-
