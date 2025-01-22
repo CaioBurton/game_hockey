@@ -4,32 +4,32 @@
 #include <cmath>
 
 struct Particula {
-    GLfloat x, y;    // PosiÁ„o
+    GLfloat x, y;    // Posi√ß√£o
     GLfloat velX, velY; // Velocidade
     GLfloat r, g, b; // Cor
-    bool ativa;      // Ativa ou n„o
+    bool ativa;      // Ativa ou n√£o
 };
 
 #define MAX_PARTICULAS 100
 Particula particulas[MAX_PARTICULAS];
 
 
-// ConfiguraÁıes gerais
+// Configura√ß√µes gerais
 GLfloat angle = 45;
 GLfloat fAspect;
 
-// Dimensıes da mesa
+// Dimens√µes da mesa
 const int mesaWidth = 200;
 const int mesaHeight = 400;
-const int maxPontos = 5; // PontuaÁ„o m·xima para vitÛria
+const int maxPontos = 5; // Pontua√ß√£o m√°xima para vit√≥ria
 
-// PosiÁ„o dos mallets
+// Posi√ß√£o dos mallets
 GLfloat malletPlayerX = 0.0;
 GLfloat malletPlayerY = -80.0;
 GLfloat malletCompX = 0.0;
 GLfloat malletCompY = 80.0;
 
-// PosiÁ„o e velocidade do puck
+// Posi√ß√£o e velocidade do puck
 GLfloat puckX = 0.0;
 GLfloat puckY = 0.0;
 GLfloat puckVelX = 0.5;
@@ -39,23 +39,23 @@ GLfloat puckVelY = 0.5;
 GLfloat tamanhoMallet = 15.0;
 GLfloat tamanhoPuck = 10.0;
 
-// PontuaÁ„o
+// Pontua√ß√£o
 int pontosPlayer = 0;
 int pontosComp = 0;
 
-// Vari·vel de dificuldade
-int dificuldade = 1; // 1: F·cil, 2: MÈdio, 3: DifÌcil
+// Vari√°vel de dificuldade
+int dificuldade = 1; // 1: F√°cil, 2: M√©dio, 3: Dif√≠cil
 
-bool isPaused = false; // Vari·vel global para controlar o estado de pausa
+bool isPaused = false; // Vari√°vel global para controlar o estado de pausa
 
-// Vari·vel para controlar a exibiÁ„o da mensagem de gol
+// Vari√°vel para controlar a exibi√ß√£o da mensagem de gol
 bool mostrarMensagemGol = false;
 
-// Vari·vel para controlar a exibiÁ„o da mensagem de vitÛria/derrota
+// Vari√°vel para controlar a exibi√ß√£o da mensagem de vit√≥ria/derrota
 bool mostrarMensagemFim = false;
 char mensagemFim[50];
 
-// FunÁıes de inicializaÁ„o
+// Fun√ß√µes de inicializa√ß√£o
 void init(void);
 void desenhaArena(void);
 void desenhaGols(void);
@@ -97,13 +97,13 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-// Inicializa configuraÁıes
+// Inicializa configura√ß√µes
 void init(void) {
     glClearColor(0.0f, 0.0f, 0.2f, 1.0f); // Fundo azul escuro
     glEnable(GL_DEPTH_TEST);
     glShadeModel(GL_SMOOTH);
 
-    // ConfiguraÁ„o de iluminaÁ„o para efeito de "glow"
+    // Configura√ß√£o de ilumina√ß√£o para efeito de "glow"
     GLfloat luzAmbiente[] = { 0.2, 0.2, 0.2, 1.0 };
     GLfloat luzDifusa[] = { 0.8, 0.8, 0.8, 1.0 };
     GLfloat luzEspecular[] = { 1.0, 1.0, 1.0, 1.0 };
@@ -117,7 +117,7 @@ void init(void) {
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
 
-    // ConfiguraÁ„o do material para brilho
+    // Configura√ß√£o do material para brilho
     GLfloat matEspecular[] = { 1.0, 1.0, 1.0, 1.0 };
     GLfloat brilho[] = { 50.0 };
 
@@ -132,7 +132,7 @@ void desenhaMallet(GLfloat x, GLfloat y, bool isPlayer) {
     if (isPlayer) {
         configurarMaterialBrilho(0.0, 0.0, 1.0); // Azul para o jogador
     } else {
-        configurarMaterialBrilho(1.0, 0.0, 0.0); // Vermelho para o advers·rio
+        configurarMaterialBrilho(1.0, 0.0, 0.0); // Vermelho para o advers√°rio
     }
     glPushMatrix();
     glTranslatef(x, y, 0);
@@ -146,7 +146,7 @@ void movimentaMouse(int x, int y) {
     int larguraJanela = glutGet(GLUT_WINDOW_WIDTH);
     int alturaJanela = glutGet(GLUT_WINDOW_HEIGHT);
 
-    // Mapear as coordenadas do mouse para o espaÁo do jogo
+    // Mapear as coordenadas do mouse para o espa√ßo do jogo
     GLfloat novoX = ((GLfloat)x / larguraJanela) * mesaWidth - mesaWidth / 2;
     GLfloat novoY = ((GLfloat)(alturaJanela - y) / alturaJanela) * mesaHeight - mesaHeight / 2;
 
@@ -161,7 +161,7 @@ void movimentaMouse(int x, int y) {
     glutPostRedisplay(); // Atualizar a tela
 }
 
-// FunÁ„o para desenhar o puck (bola central) com cor laranja
+// Fun√ß√£o para desenhar o puck (bola central) com cor laranja
 void desenhaPuck(GLfloat x, GLfloat y) {
     configurarMaterialBrilho(1.0, 1.0, 0.0); // Amarelo para o puck
     glPushMatrix();
@@ -170,7 +170,7 @@ void desenhaPuck(GLfloat x, GLfloat y) {
     glPopMatrix();
 }
 
-// Desenha a arena de hÛquei
+// Desenha a arena de h√≥quei
 void desenhaArena(void) {
 	glDisable(GL_LIGHTING);
 	glLineWidth(4.0); // Define a espessura da linha
@@ -182,7 +182,7 @@ void desenhaArena(void) {
     glutSolidCube(1);
     glPopMatrix();
 
-    // Define as dimensıes das paredes
+    // Define as dimens√µes das paredes
     float paredeProfundidade = 5.0f; // Define a profundidade das paredes (z)
     float paredeEspessura = 3.0f;    // Define a espessura extra das paredes (x ou y)
 
@@ -222,46 +222,46 @@ void desenhaArena(void) {
     glVertex3f(mesaWidth / 2, 0, 0);
     glEnd();
 	
-	// Desenha o cÌrculo central
+	// Desenha o c√≠rculo central
     glColor3f(1.0, 1.0, 1.0); // Branco
-    float raio = 40.0f; // Define o raio do cÌrculo
-    int num_segments = 100; // Define o n˙mero de segmentos para aproximar o cÌrculo
+    float raio = 40.0f; // Define o raio do c√≠rculo
+    int num_segments = 100; // Define o n√∫mero de segmentos para aproximar o c√≠rculo
     glBegin(GL_LINE_LOOP);
     for (int i = 0; i < num_segments; i++) {
-        float theta = 2.0f * 3.1415926f * i / num_segments; // ¬ngulo atual
+        float theta = 2.0f * 3.1415926f * i / num_segments; // √Çngulo atual
         float x = raio * cosf(theta); // Coordenada X
         float y = raio * sinf(theta); // Coordenada Y
-        glVertex3f(x, y, 0.0f); // Define o vÈrtice
+        glVertex3f(x, y, 0.0f); // Define o v√©rtice
     }
     glEnd();
     
-    // Desenha as grandes ·reas em forma de meia circunferÍncia
+    // Desenha as grandes √°reas em forma de meia circunfer√™ncia
     glColor3f(1.0, 1.0, 1.0); // Branco
-    float areaRaio = 50.0f; // Raio da meia circunferÍncia
-    int area_segments = 50; // N˙mero de segmentos para a meia circunferÍncia
+    float areaRaio = 50.0f; // Raio da meia circunfer√™ncia
+    int area_segments = 50; // N√∫mero de segmentos para a meia circunfer√™ncia
 
-    // Meia circunferÍncia na extremidade inferior
+    // Meia circunfer√™ncia na extremidade inferior
     glBegin(GL_LINE_STRIP);
     for (int i = 0; i <= area_segments; i++) {
-        float theta = 3.1415926f * i / area_segments; // ¬ngulo varia de 0 a pi
+        float theta = 3.1415926f * i / area_segments; // √Çngulo varia de 0 a pi
         float x = areaRaio * cosf(theta);
-        float y = -mesaHeight / 2 + areaRaio * sinf(theta); // PosiÁ„o ajustada
+        float y = -mesaHeight / 2 + areaRaio * sinf(theta); // Posi√ß√£o ajustada
         glVertex3f(x, y, 0.0f);
     }
     glEnd();
 
-    // Meia circunferÍncia na extremidade superior
+    // Meia circunfer√™ncia na extremidade superior
     glBegin(GL_LINE_STRIP);
     for (int i = 0; i <= area_segments; i++) {
-        float theta = 3.1415926f * i / area_segments; // ¬ngulo varia de 0 a pi
+        float theta = 3.1415926f * i / area_segments; // √Çngulo varia de 0 a pi
         float x = areaRaio * cosf(theta);
-        float y = mesaHeight / 2 - areaRaio * sinf(theta); // PosiÁ„o ajustada
+        float y = mesaHeight / 2 - areaRaio * sinf(theta); // Posi√ß√£o ajustada
         glVertex3f(x, y, 0.0f);
     }
     glEnd();
 	
 	// Restaura a largura da linha (opcional)
-	glLineWidth(1.0); // Retorna ‡ largura padr„o
+	glLineWidth(1.0); // Retorna √† largura padr√£o
 
 	glEnable(GL_LIGHTING);
 }
@@ -285,13 +285,13 @@ void desenhaGols(void) {
     glPopMatrix();
 }
 
-// FunÁ„o para desativar a mensagem de gol apÛs alguns segundos
+// Fun√ß√£o para desativar a mensagem de gol ap√≥s alguns segundos
 void esconderMensagemGol(int value) {
     mostrarMensagemGol = false;
     glutPostRedisplay();
 }
 
-// FunÁ„o para desenhar texto na tela
+// Fun√ß√£o para desenhar texto na tela
 void desenharTexto(float x, float y, float z, const char *texto) {
     glRasterPos3f(x, y, z);
     while (*texto) {
@@ -313,11 +313,11 @@ void desenharTextoCentralizadoNaTela(const char *texto, float r, float g, float 
         c++;
     }
 
-    // Calcula a posiÁ„o central
+    // Calcula a posi√ß√£o central
     int x = (larguraJanela - larguraTexto) / 2;
     int y = alturaJanela / 2;
 
-    // Configura projeÁ„o ortogr·fica para desenhar na tela
+    // Configura proje√ß√£o ortogr√°fica para desenhar na tela
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
@@ -330,7 +330,7 @@ void desenharTextoCentralizadoNaTela(const char *texto, float r, float g, float 
     // Define a cor do texto
     glColor3f(r, g, b);
 
-    // Define a posiÁ„o do texto
+    // Define a posi√ß√£o do texto
     glRasterPos2i(x, y);
 
     // Desenha o texto
@@ -339,7 +339,7 @@ void desenharTextoCentralizadoNaTela(const char *texto, float r, float g, float 
         texto++;
     }
 
-    // Restaura as configuraÁıes anteriores
+    // Restaura as configura√ß√µes anteriores
     glPopMatrix();
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
@@ -374,7 +374,7 @@ void display(void) {
         desenharTextoCentralizadoNaTela("GOALL!!!", 1.0, 1.0, 0.0);
     }
 
-    // Desenhar partÌculas
+    // Desenhar part√≠culas
     desenharParticulas();
 
     glutSwapBuffers();
@@ -382,47 +382,47 @@ void display(void) {
 
 
 
-// Atualiza a posiÁ„o do puck e verifica colisıes
+// Atualiza a posi√ß√£o do puck e verifica colis√µes
 void atualiza(int value) {
-    if (isPaused) return; // N„o atualiza o jogo se estiver pausado
+    if (isPaused) return; // N√£o atualiza o jogo se estiver pausado
 
     // Movimenta o puck
     puckX += puckVelX;
     puckY += puckVelY;
 
-    // Verifica colisıes
+    // Verifica colis√µes
     verificaColisoes();
 
     // Movimenta o mallet do computador
     movimentoMalletComp();
 
-    // Verifica se houve uma vitÛria
+    // Verifica se houve uma vit√≥ria
     verificarVitoria();
 
-    // Atualizar partÌculas
+    // Atualizar part√≠culas
     atualizarParticulas();
 
     glutPostRedisplay();
-    glutTimerFunc(16, atualiza, 0); // Chama a funÁ„o novamente em 16ms
+    glutTimerFunc(16, atualiza, 0); // Chama a fun√ß√£o novamente em 16ms
 }
 
 void verificaColisoes(void) {
-    // Define o raio da ·rea do gol
-    GLfloat raioGol = 50.0; // Metade do di‚metro da ·rea de gol
+    // Define o raio da √°rea do gol
+    GLfloat raioGol = 50.0; // Metade do di√¢metro da √°rea de gol
 
-    // Colis„o com as bordas laterais da mesa
+    // Colis√£o com as bordas laterais da mesa
     if (puckX - tamanhoPuck <= -mesaWidth / 2) {
-        puckX = -mesaWidth / 2 + tamanhoPuck; // Ajuste para n„o atravessar
+        puckX = -mesaWidth / 2 + tamanhoPuck; // Ajuste para n√£o atravessar
         puckVelX = -puckVelX;
     }
     if (puckX + tamanhoPuck >= mesaWidth / 2) {
-        puckX = mesaWidth / 2 - tamanhoPuck; // Ajuste para n„o atravessar
+        puckX = mesaWidth / 2 - tamanhoPuck; // Ajuste para n√£o atravessar
         puckVelX = -puckVelX;
     }
 
-    // VerificaÁ„o de gol no gol inferior (do jogador)
+    // Verifica√ß√£o de gol no gol inferior (do jogador)
     if (puckY - tamanhoPuck <= -mesaHeight / 2) {
-        if (sqrt(puckX * puckX) <= raioGol) {  // Verifica se o puck est· dentro da ·rea circular do gol
+        if (sqrt(puckX * puckX) <= raioGol) {  // Verifica se o puck est√° dentro da √°rea circular do gol
             pontosComp++;
             if (pontosComp != maxPontos) {
                 resetarJogo();
@@ -433,9 +433,9 @@ void verificaColisoes(void) {
         }
     }
 
-    // VerificaÁ„o de gol no gol superior (do computador)
+    // Verifica√ß√£o de gol no gol superior (do computador)
     if (puckY + tamanhoPuck >= mesaHeight / 2) {
-        if (sqrt(puckX * puckX) <= raioGol) {  // Verifica se o puck est· dentro da ·rea circular do gol
+        if (sqrt(puckX * puckX) <= raioGol) {  // Verifica se o puck est√° dentro da √°rea circular do gol
             pontosPlayer++;
             if (pontosPlayer != maxPontos) {
                 resetarJogo();
@@ -446,7 +446,7 @@ void verificaColisoes(void) {
         }
     }
 
-    // Colis„o com o mallet do jogador
+    // Colis√£o com o mallet do jogador
     GLfloat dxPlayer = puckX - malletPlayerX;
     GLfloat dyPlayer = puckY - malletPlayerY;
     GLfloat distPlayer2 = dxPlayer * dxPlayer + dyPlayer * dyPlayer;
@@ -465,7 +465,7 @@ void verificaColisoes(void) {
         puckVelY = dyPlayer * 0.2;
     }
 
-    // Colis„o com o mallet do computador
+    // Colis√£o com o mallet do computador
     GLfloat dxComp = puckX - malletCompX;
     GLfloat dyComp = puckY - malletCompY;
     GLfloat distComp2 = dxComp * dxComp + dyComp * dyComp;
@@ -487,25 +487,25 @@ void verificaColisoes(void) {
 
 void movimentoMalletComp(void) {
     GLfloat vel = 0.3; // Velocidade base
-    if (dificuldade == 2) vel = 0.5; // MÈdio
-    if (dificuldade == 3) vel = 0.7; // DifÌcil
+    if (dificuldade == 2) vel = 0.5; // M√©dio
+    if (dificuldade == 3) vel = 0.7; // Dif√≠cil
 
     // Centro do gol do jogador (alvo da IA)
     GLfloat alvoX = 0.0;
     GLfloat alvoY = -mesaHeight / 2;
 
-    // Vetor direÁ„o do puck ao gol
+    // Vetor dire√ß√£o do puck ao gol
     GLfloat dirPuckGolX = alvoX - puckX;
     GLfloat dirPuckGolY = alvoY - puckY;
     GLfloat magPuckGol = sqrt(dirPuckGolX * dirPuckGolX + dirPuckGolY * dirPuckGolY);
-    dirPuckGolX /= magPuckGol; // Normalizar direÁ„o
+    dirPuckGolX /= magPuckGol; // Normalizar dire√ß√£o
     dirPuckGolY /= magPuckGol;
 
-    // PosiÁ„o de interceptaÁ„o: um pouco antes de empurrar o puck
+    // Posi√ß√£o de intercepta√ß√£o: um pouco antes de empurrar o puck
     GLfloat interceptX = puckX - dirPuckGolX * tamanhoMallet * 1.5;
     GLfloat interceptY = puckY - dirPuckGolY * tamanhoMallet * 1.5;
 
-    // Mover o mallet para a posiÁ„o de interceptaÁ„o
+    // Mover o mallet para a posi√ß√£o de intercepta√ß√£o
     if (malletCompX < interceptX) malletCompX += vel;
     if (malletCompX > interceptX) malletCompX -= vel;
     if (malletCompY < interceptY && malletCompY + vel <= mesaHeight / 2 - tamanhoMallet) {
@@ -515,13 +515,13 @@ void movimentoMalletComp(void) {
         malletCompY -= vel;
     }
 
-    // Garantir que a IA n„o fique presa nas bordas laterais
+    // Garantir que a IA n√£o fique presa nas bordas laterais
     if (malletCompX <= -mesaWidth / 2 + tamanhoMallet) malletCompX += vel * 2;
     if (malletCompX >= mesaWidth / 2 - tamanhoMallet) malletCompX -= vel * 2;
 }
 
 
-// Reseta a posiÁ„o do puck e dos mallets apÛs um ponto
+// Reseta a posi√ß√£o do puck e dos mallets ap√≥s um ponto
 void resetarJogo(void) {
     puckX = 0.0;
     puckY = 0.0;
@@ -535,14 +535,14 @@ void resetarJogo(void) {
     // Exibir mensagem de gol
     mostrarMensagemGol = true;
 
-    // Inicializar partÌculas no centro do campo
+    // Inicializar part√≠culas no centro do campo
     inicializarParticulas(0.0, 0.0);
 
-    glutTimerFunc(2000, esconderMensagemGol, 0); // Remove a mensagem apÛs 2 segundos
+    glutTimerFunc(2000, esconderMensagemGol, 0); // Remove a mensagem ap√≥s 2 segundos
 }
 
 
-// Verifica se houve uma vitÛria ou derrota
+// Verifica se houve uma vit√≥ria ou derrota
 void verificarVitoria(void) {
     if (pontosPlayer >= maxPontos) {
         sprintf(mensagemFim, "Voce venceu!");
@@ -562,12 +562,12 @@ void reshape(GLsizei w, GLsizei h) {
     fAspect = (GLfloat)w / (GLfloat)h;
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(angle, fAspect, 0.1, 1000); // Ajustar o campo de vis„o e a profundidade
+    gluPerspective(angle, fAspect, 0.1, 1000); // Ajustar o campo de vis√£o e a profundidade
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
 
-// Controle de teclado para mover o mallet do jogador e alternar entre as c‚meras
+// Controle de teclado para mover o mallet do jogador e alternar entre as c√¢meras
 void keyboard(unsigned char key, int x, int y) {
     switch (key) {
         case 'w':
@@ -622,7 +622,7 @@ void desenhaPlacar(void) {
     int larguraPlacar = 300;
     int alturaPlacar = 50;
     int x = (larguraJanela - larguraPlacar) / 2; // Centro da janela
-    int y = alturaJanela - alturaPlacar - 70;    // PosiÁ„o do placar no topo da tela
+    int y = alturaJanela - alturaPlacar - 70;    // Posi√ß√£o do placar no topo da tela
 
     glBegin(GL_QUADS);
     glVertex2f(x, y);
@@ -633,13 +633,13 @@ void desenhaPlacar(void) {
     
     glDisable(GL_BLEND);
 
-    // Calcular a largura total do texto para centraliz·-lo
+    // Calcular a largura total do texto para centraliz√°-lo
     int larguraTexto = 0;
     for (char *c = placar; *c != '\0'; c++) {
         larguraTexto += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c);
     }
 
-    // Centralizar o texto dentro da ·rea preta do placar
+    // Centralizar o texto dentro da √°rea preta do placar
     int textoX = x + (larguraPlacar - larguraTexto) / 2;
     int textoY = y + (alturaPlacar / 2) - 5;  // Posiciona o texto no meio verticalmente
 
@@ -668,9 +668,9 @@ void criarMenu(void) {
     glutAddMenuEntry("Sair", 2);
 
     int dificuldadeMenuId = glutCreateMenu(dificuldadeMenu);
-    glutAddMenuEntry("F·cil", 1);
-    glutAddMenuEntry("MÈdio", 2);
-    glutAddMenuEntry("DifÌcil", 3);
+    glutAddMenuEntry("F√°cil", 1);
+    glutAddMenuEntry("M√©dio", 2);
+    glutAddMenuEntry("Dif√≠cil", 3);
 
     glutSetMenu(menuPrincipalId);
     glutAddSubMenu("Escolher Dificuldade", dificuldadeMenuId);
@@ -684,7 +684,7 @@ void menuPrincipal(int op) {
             resetarJogo();
             pontosPlayer = 0;
             pontosComp = 0;
-            glutTimerFunc(16, atualiza, 0); // Inicia a atualizaÁ„o do jogo
+            glutTimerFunc(16, atualiza, 0); // Inicia a atualiza√ß√£o do jogo
             break;
         case 2: // Sair
             exit(0);
@@ -701,7 +701,7 @@ void configurarMaterialBrilho(GLfloat r, GLfloat g, GLfloat b) {
     GLfloat ambiente[] = { r * 0.2f, g * 0.2f, b * 0.2f, 1.0f };
     GLfloat difusa[] = { r, g, b, 1.0f };
     GLfloat especular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    GLfloat brilho = 50.0f; // Ajuste o valor para o nÌvel de brilho desejado
+    GLfloat brilho = 50.0f; // Ajuste o valor para o n√≠vel de brilho desejado
 
     glMaterialfv(GL_FRONT, GL_AMBIENT, ambiente);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, difusa);
@@ -713,16 +713,16 @@ void configurarMaterialBrilho(GLfloat r, GLfloat g, GLfloat b) {
 }
 
 void inicializarParticulas(GLfloat origemX, GLfloat origemY) {
-    GLfloat escalaVelocidade = 2.0f; // Fator para aumentar a velocidade das partÌculas
+    GLfloat escalaVelocidade = 2.0f; // Fator para aumentar a velocidade das part√≠culas
 
     for (int i = 0; i < MAX_PARTICULAS; i++) {
         particulas[i].x = origemX;
         particulas[i].y = origemY;
         particulas[i].velX = ((rand() % 100) - 50) / 50.0f * escalaVelocidade; // Velocidade X escalada
         particulas[i].velY = ((rand() % 100) - 50) / 50.0f * escalaVelocidade; // Velocidade Y escalada
-        particulas[i].r = (rand() % 256) / 255.0f; // Cor R aleatÛria
-        particulas[i].g = (rand() % 256) / 255.0f; // Cor G aleatÛria
-        particulas[i].b = (rand() % 256) / 255.0f; // Cor B aleatÛria
+        particulas[i].r = (rand() % 256) / 255.0f; // Cor R aleat√≥ria
+        particulas[i].g = (rand() % 256) / 255.0f; // Cor G aleat√≥ria
+        particulas[i].b = (rand() % 256) / 255.0f; // Cor B aleat√≥ria
         particulas[i].ativa = true;
     }
 }
@@ -734,7 +734,7 @@ void atualizarParticulas() {
             particulas[i].x += particulas[i].velX;
             particulas[i].y += particulas[i].velY;
 
-            // Desativa a partÌcula quando sai do limite
+            // Desativa a part√≠cula quando sai do limite
             if (fabs(particulas[i].x) > mesaWidth / 2 || fabs(particulas[i].y) > mesaHeight / 2) {
                 particulas[i].ativa = false;
             }
@@ -748,7 +748,7 @@ void desenharParticulas() {
             glColor3f(particulas[i].r, particulas[i].g, particulas[i].b);
             glPushMatrix();
             glTranslatef(particulas[i].x, particulas[i].y, 0);
-            glutSolidSphere(2, 10, 10); // PartÌcula pequena
+            glutSolidSphere(2, 10, 10); // Part√≠cula pequena
             glPopMatrix();
         }
     }
