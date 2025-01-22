@@ -1,9 +1,18 @@
 #include <GL/glut.h>
 #include <stdio.h>
 #include <cstdlib>
-//#include "stb_image.h"
 #include <cmath>
-#define NUM_FLOCOS 100
+
+struct Particula {
+    GLfloat x, y;    // Posição
+    GLfloat velX, velY; // Velocidade
+    GLfloat r, g, b; // Cor
+    bool ativa;      // Ativa ou não
+};
+
+#define MAX_PARTICULAS 100
+Particula particulas[MAX_PARTICULAS];
+
 
 // Configurações gerais
 GLfloat angle = 45;
@@ -34,9 +43,6 @@ GLfloat tamanhoPuck = 10.0;
 int pontosPlayer = 0;
 int pontosComp = 0;
 
-// Variáveis de controle de câmera
-int cameraMode = 1; // 0: Padrão, 1: Campo do jogador, 2: Campo do computador
-
 // Variável de dificuldade
 int dificuldade = 1; // 1: Fácil, 2: Médio, 3: Difícil
 
@@ -63,12 +69,16 @@ void verificaColisoes(void);
 void movimentoMalletComp(void);
 void resetarJogo(void);
 void verificarVitoria(void);
-void configurarCamera(void);
 void desenhaPlacar(void);
 void menuPrincipal(int op);
 void dificuldadeMenu(int op);
 void criarMenu(void);
 void movimentaMouse(int x, int y);
+void configurarMaterialBrilho(GLfloat r, GLfloat g, GLfloat b);
+void inicializarParticulas(GLfloat origemX, GLfloat origemY);
+void atualizarParticulas();
+void desenharParticulas();
+
 
 // Programa Principal
 int main(int argc, char **argv) {
@@ -120,9 +130,9 @@ void init(void) {
 // Desenha um mallet
 void desenhaMallet(GLfloat x, GLfloat y, bool isPlayer) {
     if (isPlayer) {
-        glColor3f(0.0, 0.0, 1.0); // Azul para o jogador
+        configurarMaterialBrilho(0.0, 0.0, 1.0); // Azul para o jogador
     } else {
-        glColor3f(1.0, 0.0, 0.0); // Vermelho para o adversário
+        configurarMaterialBrilho(1.0, 0.0, 0.0); // Vermelho para o adversário
     }
     glPushMatrix();
     glTranslatef(x, y, 0);
@@ -153,7 +163,7 @@ void movimentaMouse(int x, int y) {
 
 // Função para desenhar o puck (bola central) com cor laranja
 void desenhaPuck(GLfloat x, GLfloat y) {
-    glColor3f(1.0, 1.0, 0.0); // Amarelo
+    configurarMaterialBrilho(1.0, 1.0, 0.0); // Amarelo para o puck
     glPushMatrix();
     glTranslatef(x, y, 0);
     glutSolidSphere(tamanhoPuck, 20, 20);
@@ -263,60 +273,17 @@ void desenhaGols(void) {
     // Gol inferior
     glPushMatrix();
     glTranslatef(0, -mesaHeight / 2, 0);
-    glScalef(mesaWidth / 2, 2, 15); // Aumenta a profundidade no eixo Z
+    glScalef(mesaWidth / 2, 2, 5); // Aumenta a profundidade no eixo Z
     glutSolidCube(1);
     glPopMatrix();
 
     // Gol superior
     glPushMatrix();
     glTranslatef(0, mesaHeight / 2, 0);
-    glScalef(mesaWidth / 2, 2, 15); // Aumenta a profundidade no eixo Z
+    glScalef(mesaWidth / 2, 2, 7); // Aumenta a profundidade no eixo Z
     glutSolidCube(1);
     glPopMatrix();
 }
-
-// Desenha um mallet
-// void desenhaMallet(GLfloat x, GLfloat y) {
-//     glEnable(GL_LIGHTING); // Ativar iluminação
-//     glColor3f(1.0, 0.0, 0.0); // Vermelho para o mallet do jogador
-//     glPushMatrix();
-//     glTranslatef(x, y, 0);
-//     glutSolidSphere(tamanhoMallet, 20, 20);
-//     glPopMatrix();
-//     glDisable(GL_LIGHTING); // Desativar iluminação
-// }
-// 
-// Desenha o puck
-// void desenhaPuck(GLfloat x, GLfloat y) {
-//     glEnable(GL_LIGHTING); // Ativar iluminação
-//     glColor3f(1.0, 1.0, 0.0); // Amarelo para o puck
-//     glPushMatrix();
-//     glTranslatef(x, y, 0);
-//     glutSolidSphere(tamanhoPuck, 20, 20);
-//     glPopMatrix();
-//     glDisable(GL_LIGHTING); // Desativar iluminação
-// }
-
-
-
-// Configura a câmera de acordo com o modo selecionado
-void configurarCamera(void) {
-    switch (cameraMode) {
-        case 0: // Padrão
-            gluLookAt(0.0, 0.0, 500.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-            break;
-        case 1: // Isométrica do jogador
-            gluLookAt(0.0, -380.0, 200.0, 0.0, 10.0, 0.0, 0.0, 1.0, 0.0);
-            break;
-        case 2: // Isométrica do computador
-            gluLookAt(0.0, 380.0, 200.0, 0.0, 50.0, 0.0, 0.0, -1.0, 0.0);
-            break;
-        case 3: // Câmera que segue o jogador
-            gluLookAt(malletPlayerX, malletPlayerY - 50, 200.0, malletPlayerX, malletPlayerY, 0.0, 0.0, 1.0, 0.0);
-            break;
-    }
-}
-
 
 // Função para desativar a mensagem de gol após alguns segundos
 void esconderMensagemGol(int value) {
@@ -381,23 +348,10 @@ void desenharTextoCentralizadoNaTela(const char *texto, float r, float g, float 
 }
 
 
-
-// Desenha os flocos de neve
-// void desenharFlocosDeNeve() {
-//     glColor3f(1.0, 1.0, 1.0);
-//     for (int i = 0; i < NUM_FLOCOS; i++) {
-//         glPushMatrix();
-//         glTranslatef(flocos[i].x, flocos[i].y, flocos[i].z);
-//         glutSolidSphere(1, 10, 10);
-//         glPopMatrix();
-//     }
-// }
-// 
-// Atualizar a função display para exibir o texto de pausa
 void display(void) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
-    configurarCamera();
+    gluLookAt(0.0, -380.0, 200.0, 0.0, 10.0, 0.0, 0.0, 1.0, 0.0);
 
     desenhaArena();
     desenhaGols();
@@ -408,10 +362,10 @@ void display(void) {
     desenhaPlacar();
 
     if (isPaused && mostrarMensagemFim) {
-    	if(pontosPlayer == 5)
-        	desenharTextoCentralizadoNaTela(mensagemFim, 0.0, 1.0, 0.0);
+        if (pontosPlayer == 5)
+            desenharTextoCentralizadoNaTela(mensagemFim, 0.0, 1.0, 0.0);
         else
-        	desenharTextoCentralizadoNaTela(mensagemFim, 1.0, 0.0, 0.0);
+            desenharTextoCentralizadoNaTela(mensagemFim, 1.0, 0.0, 0.0);
     } else if (isPaused) {
         desenharTextoCentralizadoNaTela("Jogo Pausado", 0.0, 1.0, 0.0); // Verde para pausa
     }
@@ -420,23 +374,16 @@ void display(void) {
         desenharTextoCentralizadoNaTela("GOALL!!!", 1.0, 1.0, 0.0);
     }
 
+    // Desenhar partículas
+    desenharParticulas();
+
     glutSwapBuffers();
 }
 
-// Atualiza a posição dos flocos de neve
-// void atualizarFlocosDeNeve() {
-//     for (int i = 0; i < NUM_FLOCOS; i++) {
-//         flocos[i].y -= flocos[i].velocidade;
-//         if (flocos[i].y < -200) {
-//             flocos[i].y = 200;
-//         }
-//     }
-// }
 
 
 // Atualiza a posição do puck e verifica colisões
 void atualiza(int value) {
-	
     if (isPaused) return; // Não atualiza o jogo se estiver pausado
 
     // Movimenta o puck
@@ -445,15 +392,15 @@ void atualiza(int value) {
 
     // Verifica colisões
     verificaColisoes();
-    
+
     // Movimenta o mallet do computador
     movimentoMalletComp();
 
     // Verifica se houve uma vitória
     verificarVitoria();
-    
-	// Atualiza a posição dos flocos de neve
-//    atualizarFlocosDeNeve();
+
+    // Atualizar partículas
+    atualizarParticulas();
 
     glutPostRedisplay();
     glutTimerFunc(16, atualiza, 0); // Chama a função novamente em 16ms
@@ -539,25 +486,38 @@ void verificaColisoes(void) {
 
 
 void movimentoMalletComp(void) {
-    GLfloat vel = 0.4; // Velocidade base
-    if (dificuldade == 2) vel = 0.6; // Médio
-    if (dificuldade == 3) vel = 0.8; // Difícil
+    GLfloat vel = 0.3; // Velocidade base
+    if (dificuldade == 2) vel = 0.5; // Médio
+    if (dificuldade == 3) vel = 0.7; // Difícil
 
-    GLfloat dirX = puckX - malletCompX;
-    GLfloat dirY = puckY - malletCompY;
-    GLfloat dist = sqrt(dirX * dirX + dirY * dirY);
+    // Centro do gol do jogador (alvo da IA)
+    GLfloat alvoX = 0.0;
+    GLfloat alvoY = -mesaHeight / 2;
 
-    // Movimenta o mallet da CPU somente se estiver longe o suficiente do puck
-    if (dist > tamanhoMallet + tamanhoPuck) {
-        if (puckX > malletCompX) malletCompX += vel;
-        if (puckX < malletCompX) malletCompX -= vel;
-        if (puckY > malletCompY && malletCompY + vel <= mesaHeight / 2 - tamanhoMallet) {
-            malletCompY += vel; // Apenas se estiver dentro do campo superior
-        }
-        if (puckY < malletCompY && malletCompY - vel > 0 + tamanhoMallet) {
-            malletCompY -= vel; // Apenas se estiver dentro do campo superior
-        }
+    // Vetor direção do puck ao gol
+    GLfloat dirPuckGolX = alvoX - puckX;
+    GLfloat dirPuckGolY = alvoY - puckY;
+    GLfloat magPuckGol = sqrt(dirPuckGolX * dirPuckGolX + dirPuckGolY * dirPuckGolY);
+    dirPuckGolX /= magPuckGol; // Normalizar direção
+    dirPuckGolY /= magPuckGol;
+
+    // Posição de interceptação: um pouco antes de empurrar o puck
+    GLfloat interceptX = puckX - dirPuckGolX * tamanhoMallet * 1.5;
+    GLfloat interceptY = puckY - dirPuckGolY * tamanhoMallet * 1.5;
+
+    // Mover o mallet para a posição de interceptação
+    if (malletCompX < interceptX) malletCompX += vel;
+    if (malletCompX > interceptX) malletCompX -= vel;
+    if (malletCompY < interceptY && malletCompY + vel <= mesaHeight / 2 - tamanhoMallet) {
+        malletCompY += vel;
     }
+    if (malletCompY > interceptY && malletCompY - vel > 0 + tamanhoMallet) {
+        malletCompY -= vel;
+    }
+
+    // Garantir que a IA não fique presa nas bordas laterais
+    if (malletCompX <= -mesaWidth / 2 + tamanhoMallet) malletCompX += vel * 2;
+    if (malletCompX >= mesaWidth / 2 - tamanhoMallet) malletCompX -= vel * 2;
 }
 
 
@@ -574,8 +534,13 @@ void resetarJogo(void) {
 
     // Exibir mensagem de gol
     mostrarMensagemGol = true;
+
+    // Inicializar partículas no centro do campo
+    inicializarParticulas(0.0, 0.0);
+
     glutTimerFunc(2000, esconderMensagemGol, 0); // Remove a mensagem após 2 segundos
 }
+
 
 // Verifica se houve uma vitória ou derrota
 void verificarVitoria(void) {
@@ -617,12 +582,6 @@ void keyboard(unsigned char key, int x, int y) {
         case 'd':
             if (malletPlayerX + 3.0 <= mesaWidth / 2 - tamanhoMallet) malletPlayerX += 2.5;
             break;
-        case 'c':
-            cameraMode = (cameraMode + 1) % 4;
-            break;
-        case 'C':
-            cameraMode = (cameraMode + 2) % 4; // Alterna para a câmera anterior
-            break;
         case 'p': // Pausa e despausa
             isPaused = !isPaused;
             if (!isPaused) {
@@ -638,31 +597,56 @@ void keyboard(unsigned char key, int x, int y) {
 // Desenha o placar na tela
 void desenhaPlacar(void) {
     glDisable(GL_LIGHTING);
-    
-    char placar[50];
-    sprintf(placar, "Jogador: %d  Computador: %d", pontosPlayer, pontosComp);
+    glDisable(GL_DEPTH_TEST);
 
-    // Obtendo a largura e altura da janela atual
     int larguraJanela = glutGet(GLUT_WINDOW_WIDTH);
     int alturaJanela = glutGet(GLUT_WINDOW_HEIGHT);
 
-    // Configuração de projeção ortográfica para desenhar o texto
+    char placar[50];
+    sprintf(placar, "Jogador: %d  |  Computador: %d", pontosPlayer, pontosComp);
+
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
     gluOrtho2D(0, larguraJanela, 0, alturaJanela);
-
+    
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
 
-    // Define a posição do texto no canto superior direito
-    int x = larguraJanela - 235; // Ajuste para alinhamento à direita
-    int y = alturaJanela - 30;   // Ajuste para a margem superior
+    // Desenha o fundo do placar
+    glColor4f(0.0, 0.0, 0.0, 0.5);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glColor3f(1.0, 1.0, 1.0); // Cor branca para o texto
-    glRasterPos2i(x, y);
+    int larguraPlacar = 300;
+    int alturaPlacar = 50;
+    int x = (larguraJanela - larguraPlacar) / 2; // Centro da janela
+    int y = alturaJanela - alturaPlacar - 70;    // Posição do placar no topo da tela
 
+    glBegin(GL_QUADS);
+    glVertex2f(x, y);
+    glVertex2f(x + larguraPlacar, y);
+    glVertex2f(x + larguraPlacar, y + alturaPlacar);
+    glVertex2f(x, y + alturaPlacar);
+    glEnd();
+    
+    glDisable(GL_BLEND);
+
+    // Calcular a largura total do texto para centralizá-lo
+    int larguraTexto = 0;
+    for (char *c = placar; *c != '\0'; c++) {
+        larguraTexto += glutBitmapWidth(GLUT_BITMAP_HELVETICA_18, *c);
+    }
+
+    // Centralizar o texto dentro da área preta do placar
+    int textoX = x + (larguraPlacar - larguraTexto) / 2;
+    int textoY = y + (alturaPlacar / 2) - 5;  // Posiciona o texto no meio verticalmente
+
+    glColor3f(1.0, 1.0, 1.0);  // Cor do texto branca
+    glRasterPos2i(textoX, textoY);
+
+    // Renderiza o texto caractere por caractere
     for (char *c = placar; *c != '\0'; c++) {
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *c);
     }
@@ -671,8 +655,11 @@ void desenhaPlacar(void) {
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
+
+    glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
 }
+
 
 // Cria o menu principal e o de dificuldade
 void criarMenu(void) {
@@ -710,22 +697,59 @@ void dificuldadeMenu(int op) {
     dificuldade = op; // Define a dificuldade com base na escolha
 }
 
+void configurarMaterialBrilho(GLfloat r, GLfloat g, GLfloat b) {
+    GLfloat ambiente[] = { r * 0.2f, g * 0.2f, b * 0.2f, 1.0f };
+    GLfloat difusa[] = { r, g, b, 1.0f };
+    GLfloat especular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    GLfloat brilho = 50.0f; // Ajuste o valor para o nível de brilho desejado
 
-// 
-// struct FlocoDeNeve {
-//     float x, y, z;
-//     float velocidade;
-// };
-// 
-// FlocoDeNeve flocos[NUM_FLOCOS];
-// 
-// Inicializa os flocos de neve
-// void inicializarFlocosDeNeve() {
-//     for (int i = 0; i < NUM_FLOCOS; i++) {
-//         flocos[i].x = (rand() % 200) - 100;
-//         flocos[i].y = (rand() % 400) - 200;
-//         flocos[i].z = 0;
-//         flocos[i].velocidade = (rand() % 5 + 1) / 10.0;
-//     }
-// }
-// }
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambiente);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, difusa);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, especular);
+    glMaterialf(GL_FRONT, GL_SHININESS, brilho);
+    
+    glEnable(GL_COLOR_MATERIAL);
+    glColor3f(r, g, b);
+}
+
+void inicializarParticulas(GLfloat origemX, GLfloat origemY) {
+    GLfloat escalaVelocidade = 2.0f; // Fator para aumentar a velocidade das partículas
+
+    for (int i = 0; i < MAX_PARTICULAS; i++) {
+        particulas[i].x = origemX;
+        particulas[i].y = origemY;
+        particulas[i].velX = ((rand() % 100) - 50) / 50.0f * escalaVelocidade; // Velocidade X escalada
+        particulas[i].velY = ((rand() % 100) - 50) / 50.0f * escalaVelocidade; // Velocidade Y escalada
+        particulas[i].r = (rand() % 256) / 255.0f; // Cor R aleatória
+        particulas[i].g = (rand() % 256) / 255.0f; // Cor G aleatória
+        particulas[i].b = (rand() % 256) / 255.0f; // Cor B aleatória
+        particulas[i].ativa = true;
+    }
+}
+
+
+void atualizarParticulas() {
+    for (int i = 0; i < MAX_PARTICULAS; i++) {
+        if (particulas[i].ativa) {
+            particulas[i].x += particulas[i].velX;
+            particulas[i].y += particulas[i].velY;
+
+            // Desativa a partícula quando sai do limite
+            if (fabs(particulas[i].x) > mesaWidth / 2 || fabs(particulas[i].y) > mesaHeight / 2) {
+                particulas[i].ativa = false;
+            }
+        }
+    }
+}
+
+void desenharParticulas() {
+    for (int i = 0; i < MAX_PARTICULAS; i++) {
+        if (particulas[i].ativa) {
+            glColor3f(particulas[i].r, particulas[i].g, particulas[i].b);
+            glPushMatrix();
+            glTranslatef(particulas[i].x, particulas[i].y, 0);
+            glutSolidSphere(2, 10, 10); // Partícula pequena
+            glPopMatrix();
+        }
+    }
+}
