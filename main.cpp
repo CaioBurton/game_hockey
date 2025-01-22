@@ -44,7 +44,7 @@ int pontosPlayer = 0;
 int pontosComp = 0;
 
 // Variável de dificuldade
-int dificuldade = 1; // 1: Fácil, 2: Médio, 3: Difícil
+int dificuldade = 2; // 2: Médio, 3: Difícil
 
 bool isPaused = false; // Variável global para controlar o estado de pausa
 
@@ -668,9 +668,8 @@ void criarMenu(void) {
     glutAddMenuEntry("Sair", 2);
 
     int dificuldadeMenuId = glutCreateMenu(dificuldadeMenu);
-    glutAddMenuEntry("Fácil", 1);
-    glutAddMenuEntry("Médio", 2);
-    glutAddMenuEntry("Difícil", 3);
+    glutAddMenuEntry("M�dio", 2);
+    glutAddMenuEntry("Dif�cil", 3);
 
     glutSetMenu(menuPrincipalId);
     glutAddSubMenu("Escolher Dificuldade", dificuldadeMenuId);
